@@ -1,10 +1,11 @@
 package touhou;
 
 import javafx.geometry.Point2D;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 
-public class Player {
+public class Player implements GameObject {
     private static final double SIZE = 18;
     private static final double SPEED = 260;
 
@@ -47,6 +48,22 @@ public class Player {
 
     public Point2D getPosition() {
         return position;
+    }
+
+    @Override
+    public Rectangle2D getBounds() {
+        return new Rectangle2D(
+                position.getX() - SIZE / 2,
+                position.getY() - SIZE / 2,
+                SIZE,
+                SIZE);
+    }
+
+    @Override
+    public void onCollision(GameObject other) {
+        if (other instanceof EnemyBullet) {
+            position = new Point2D(worldWidth / 2, worldHeight - 55);
+        }
     }
 
     private static double clamp(double value, double minimum, double maximum) {
