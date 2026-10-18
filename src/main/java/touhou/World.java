@@ -29,14 +29,14 @@ public class World {
         drawShooter(gc);
         for (EnemyBullet enemyBullet : enemyBullets) {
             if (enemyBullet != null && enemyBullet.isActive()) {
-                enemyBullet.draw(gc);
+                drawObject(enemyBullet, gc);
             }
         }
-        player.draw(gc);
+        drawObject(player, gc);
     }
 
     public void simulate(double deltaTime) {
-        player.simulate(deltaTime);
+        simulateObject(player, deltaTime);
         patternTime += deltaTime;
         if (patternTime >= 0.35) {
             patternTime = 0;
@@ -46,16 +46,25 @@ public class World {
             if (enemyBullet == null || !enemyBullet.isActive()) {
                 continue;
             }
-            enemyBullet.simulate(deltaTime);
+            simulateObject(enemyBullet, deltaTime);
             if (enemyBullet.isOutside(width, height)) {
                 enemyBullet.deactivate();
                 continue;
             }
+
             if (player.getBounds().intersects(enemyBullet.getBounds())) {
                 player.onCollision(enemyBullet);
                 enemyBullet.onCollision(player);
             }
         }
+    }
+
+    private static void drawObject(Drawable object, GraphicsContext gc) {
+        object.draw(gc);
+    }
+
+    private static void simulateObject(Simulatable object, double deltaTime) {
+        object.simulate(deltaTime);
     }
 
     public void setPlayerInput(double x, double y) {
