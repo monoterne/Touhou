@@ -39,7 +39,7 @@ public class DrawingThread extends AnimationTimer {
 
     private void drawFps(double delta) {
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
-        gc.setFill(Color.rgb(10, 10, 28));
+        gc.setFill(Color.rgb(12, 6, 24));
         gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
         int fps = calcFps(delta);
         gc.setFont(new Font("Input", 18));
