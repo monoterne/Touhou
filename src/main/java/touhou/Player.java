@@ -88,7 +88,7 @@ public class Player extends WorldEntity {
     }
 
     private static double clamp(double value, double minimum, double maximum) {
-        return Math.clamp(maximum, minimum, value);
+        return Math.clamp(value, minimum, maximum);
     }
 
     private void updateAnimation(Point2D direction, double deltaTime) {
