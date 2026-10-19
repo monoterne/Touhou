@@ -3,6 +3,7 @@ package touhou;
 import javafx.animation.AnimationTimer;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 
@@ -10,6 +11,7 @@ public class DrawingThread extends AnimationTimer {
 
     private final Canvas canvas;
     private final GraphicsContext gc;
+    private Label livesLabel;
 
     private long lastFrame = 0;
     private final World world;
@@ -25,6 +27,14 @@ public class DrawingThread extends AnimationTimer {
         world.setPlayerInput(x, y);
     }
 
+    public int getPlayerLives() {
+        return world.getPlayerLives();
+    }
+
+    public void setLivesLabel(Label livesLabel) {
+        this.livesLabel = livesLabel;
+    }
+
     /**
      * Draws objects into the canvas. Put you code here.
      */
@@ -34,6 +44,9 @@ public class DrawingThread extends AnimationTimer {
         lastFrame = now;
         drawFps(delta);
         world.simulate(delta);
+        if (livesLabel != null) {
+            livesLabel.setText("Lives: " + world.getPlayerLives());
+        }
         world.draw(gc);
     }
 

@@ -76,6 +76,10 @@ public class World {
         player.setInput(x, y);
     }
 
+    public int getPlayerLives() {
+        return player.getLives();
+    }
+
     public void reload() {
         for (WorldEntity object : objects) {
             if (object instanceof BulletAnimated bullet && bullet.isActive()) {

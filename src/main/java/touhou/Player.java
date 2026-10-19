@@ -5,6 +5,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 
 public class Player extends WorldEntity {
+    private static final int STARTING_LIVES = 3;
     private static final double SIZE = 44;
     private static final double SPEED = 260;
     private static final double FRAME_DURATION = 0.12;
@@ -24,6 +25,7 @@ public class Player extends WorldEntity {
     private double animationTime;
     private int directionRow = DOWN_ROW;
     private int animationFrame;
+    private int lives = STARTING_LIVES;
 
     public Player(World world, double worldWidth, double worldHeight) {
         super(world, new Point2D(worldWidth / 2, worldHeight - 55));
@@ -67,6 +69,10 @@ public class Player extends WorldEntity {
         return position;
     }
 
+    public int getLives() {
+        return lives;
+    }
+
     @Override
     public javafx.geometry.Rectangle2D getBoundingBox() {
         return new javafx.geometry.Rectangle2D(
@@ -75,7 +81,8 @@ public class Player extends WorldEntity {
 
     @Override
     public void hitBy(Collisonable other) {
-        if (other instanceof Bullet) {
+        if (other instanceof Bullet && lives > 0) {
+            lives--;
             setPosition(new Point2D(worldWidth / 2, worldHeight - 55));
         }
     }
