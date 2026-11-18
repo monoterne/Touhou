@@ -3,6 +3,9 @@
 # Project exclude paths
 /target/
 
+# Local game data
+/touhou.dat
+
 # Compiled class file
 *.class
 
