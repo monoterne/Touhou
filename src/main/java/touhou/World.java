@@ -77,21 +77,7 @@ public class World {
                 bullet.deactivate();
             }
         }
-
-        for (int first = 0; first < objects.size(); first++) {
-            if (!isActive(objects.get(first))) {
-                continue;
-            }
-            for (int second = first + 1; second < objects.size(); second++) {
-                if (!isActive(objects.get(second))) {
-                    continue;
-                }
-                if (objects.get(first).intersect(objects.get(second).getBoundingBox())) {
-                    objects.get(first).hitBy(objects.get(second));
-                    objects.get(second).hitBy(objects.get(first));
-                }
-            }
-        }
+        resolveCollisions();
     }
 
     public void setPlayerInput(double x, double y) {
@@ -119,6 +105,22 @@ public class World {
                 bullet.setPosition(boss.getPosition());
                 bullet.setVelocity(85, boss.getAngle());
                 return;
+            }
+        }
+    }
+
+    private void resolveCollisions() {
+        for (int first = 0; first < objects.size(); first++) {
+            WorldEntity firstEntity = objects.get(first);
+            if (!isActive(firstEntity)) {
+                continue;
+            }
+            for (int second = first + 1; second < objects.size(); second++) {
+                WorldEntity secondEntity = objects.get(second);
+                if (isActive(secondEntity) && firstEntity.intersect(secondEntity.getBoundingBox())) {
+                    firstEntity.hitBy(secondEntity);
+                    secondEntity.hitBy(firstEntity);
+                }
             }
         }
     }
