@@ -11,7 +11,7 @@
     </padding>
     <children>
         <Label styleClass="title-label" text="Touhou" />
-        <Button mnemonicParsing="false" onAction="#startGame" prefWidth="220.0" text="Start" />
-        <Button mnemonicParsing="false" onAction="#exitGame" prefWidth="220.0" text="Exit" />
+        <Button fx:id="startButton" mnemonicParsing="false" prefWidth="220.0" text="Start" />
+        <Button fx:id="exitButton" mnemonicParsing="false" prefWidth="220.0" text="Exit" />
     </children>
 </VBox>

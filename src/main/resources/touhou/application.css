@@ -19,6 +19,32 @@
     -fx-font-weight: bold;
 }
 
+.boss-health-label {
+    -fx-text-fill: #e6d6ff;
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+}
+
+.health-bar > .track {
+    -fx-background-color: #2c2043;
+    -fx-background-insets: 0;
+    -fx-background-radius: 3px;
+}
+
+.health-bar > .bar {
+    -fx-background-insets: 0;
+    -fx-background-radius: 3px;
+    -fx-padding: 0;
+}
+
+.player-health-bar > .bar {
+    -fx-background-color: linear-gradient(to right, #ba446e, #f598aa);
+}
+
+.boss-health-bar > .bar {
+    -fx-background-color: linear-gradient(to right, #7e43cd, #c69dff);
+}
+
 .button {
     -fx-background-color: #5b2a86;
     -fx-text-fill: white;

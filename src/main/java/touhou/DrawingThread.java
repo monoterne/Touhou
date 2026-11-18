@@ -1,16 +1,24 @@
 package touhou;
 
 import javafx.animation.AnimationTimer;
+import javafx.beans.property.ReadOnlyIntegerProperty;
+import javafx.beans.property.ReadOnlyIntegerWrapper;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 
 public class DrawingThread extends AnimationTimer {
+    private static final Image BACKGROUND = loadBackground();
 
     private final Canvas canvas;
     private final GraphicsContext gc;
+    private final Runnable onGameOver;
+    private final Runnable onVictory;
+    private final ReadOnlyIntegerWrapper playerLives;
+    private final ReadOnlyIntegerWrapper bossHealth;
     private Label livesLabel;
 
     private long lastFrame = 0;
@@ -18,21 +26,47 @@ public class DrawingThread extends AnimationTimer {
 
 
     public DrawingThread(Canvas canvas) {
+        this(canvas, () -> {}, () -> {});
+    }
+
+    DrawingThread(Canvas canvas, Runnable onGameOver, Runnable onVictory) {
         this.canvas = canvas;
         this.gc = canvas.getGraphicsContext2D();
+        this.onGameOver = onGameOver;
+        this.onVictory = onVictory;
         this.world = new World(canvas.getWidth(), canvas.getHeight());
+        this.playerLives = new ReadOnlyIntegerWrapper(world.getPlayerLives());
+        this.bossHealth = new ReadOnlyIntegerWrapper(world.getBossHealth());
     }
 
     public void setInput(double x, double y) {
         world.setPlayerInput(x, y);
     }
 
+    void setFiring(boolean firing) {
+        world.setFiring(firing);
+    }
+
     public int getPlayerLives() {
         return world.getPlayerLives();
     }
 
+    ReadOnlyIntegerProperty playerLivesProperty() {
+        return playerLives.getReadOnlyProperty();
+    }
+
+    ReadOnlyIntegerProperty bossHealthProperty() {
+        return bossHealth.getReadOnlyProperty();
+    }
+
     public void setLivesLabel(Label livesLabel) {
         this.livesLabel = livesLabel;
+    }
+
+    @Override
+    public void stop() {
+        super.stop();
+        lastFrame = 0;
     }
 
     /**
@@ -42,18 +76,25 @@ public class DrawingThread extends AnimationTimer {
     public void handle(long now) {
         double delta = lastFrame == 0 ? 0 : (now - lastFrame) / 1_000_000_000D;
         lastFrame = now;
-        drawFps(delta);
         world.simulate(delta);
+        int lives = world.getPlayerLives();
+        int health = world.getBossHealth();
+        playerLives.set(lives);
+        bossHealth.set(health);
         if (livesLabel != null) {
-            livesLabel.setText("Lives: " + world.getPlayerLives());
+            livesLabel.setText("Lives: " + lives);
         }
+        if (lives == 0 || health == 0) {
+            stop();
+            (health == 0 ? onVictory : onGameOver).run();
+            return;
+        }
+        gc.drawImage(BACKGROUND, 0, 0, canvas.getWidth(), canvas.getHeight());
         world.draw(gc);
+        drawFps(delta);
     }
 
     private void drawFps(double delta) {
-        gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
-        gc.setFill(Color.rgb(12, 6, 24));
-        gc.fillRect(0, 0, canvas.getWidth(), canvas.getHeight());
         int fps = calcFps(delta);
         gc.setFont(new Font("Input", 18));
         gc.setFill(Color.WHITE);
@@ -63,6 +104,14 @@ public class DrawingThread extends AnimationTimer {
     private double fpsSum = 0;
     private double fpsCount = 0;
     private int avergeFps = 0;
+
+    private static Image loadBackground() {
+        var resource = DrawingThread.class.getResource("bg.png");
+        if (resource == null) {
+            throw new IllegalStateException("Missing stage background: bg.png");
+        }
+        return new Image(resource.toExternalForm());
+    }
 
     private int calcFps(double delta) {
         if (delta <= 0) {

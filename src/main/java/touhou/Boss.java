@@ -1,34 +1,86 @@
 package touhou;
 
 import javafx.geometry.Point2D;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.RadialGradient;
+import javafx.scene.paint.Stop;
 
 public class Boss extends Cannon {
-    private static final double WIDTH = 60;
-    private static final double HEIGHT = 47;
+    static final int MAX_HEALTH = 1_000;
+
+    private static final double SPRITE_SIZE = 112;
+    private static final double SWEEP_PERIOD_SECONDS = 18;
+    private static final double BOB_PERIOD_SECONDS = 3;
+    private static final double BOB_HEIGHT = 5;
     private static final Image TEXTURE = loadTexture();
+    private static final RadialGradient HALO = new RadialGradient(0, 0, 0.5, 0.5, 0.5, true,
+            CycleMethod.NO_CYCLE,
+            new Stop(0, Color.web("#a96bff", 0.25)),
+            new Stop(0.55, Color.web("#8050dc", 0.15)),
+            new Stop(1, Color.TRANSPARENT));
+    private static final Color HALO_RING = Color.web("#b986ff", 0.40);
+
+    private final Point2D center;
+    private final double sweepDistance;
+    private int health = MAX_HEALTH;
+    private double elapsed;
 
     public Boss(World world, Point2D position) {
+        this(world, position, 0);
+    }
+
+    Boss(World world, Point2D position, double sweepDistance) {
         super(world, position);
+        this.center = position;
+        this.sweepDistance = sweepDistance;
+    }
+
+    int getHealth() {
+        return health;
+    }
+
+    void takeDamage(int damage) {
+        health = Math.max(0, health - damage);
+    }
+
+    @Override
+    public void simulate(double deltaTime) {
+        elapsed += deltaTime;
+        setPosition(center.add(
+                Math.sin(2 * Math.PI * elapsed / SWEEP_PERIOD_SECONDS) * sweepDistance,
+                Math.sin(2 * Math.PI * elapsed / BOB_PERIOD_SECONDS) * BOB_HEIGHT));
     }
 
     @Override
     protected void drawInternal(GraphicsContext gc) {
-        gc.drawImage(TEXTURE, position.getX() - WIDTH / 2,
-                position.getY() - HEIGHT / 2, WIDTH, HEIGHT);
+        double x = position.getX();
+        double y = position.getY();
+        double pulse = 0.86 + 0.14 * Math.cos(2 * Math.PI * elapsed / BOB_PERIOD_SECONDS);
+        gc.setGlobalAlpha(pulse);
+        gc.setFill(HALO);
+        gc.fillOval(x - 100, y - 88, 200, 176);
+        gc.setStroke(HALO_RING);
+        gc.setLineWidth(1.2);
+        double ringRadius = 64 + 4 * pulse;
+        gc.strokeOval(x - ringRadius, y - ringRadius, ringRadius * 2, ringRadius * 2);
+        gc.setGlobalAlpha(1);
+        gc.setImageSmoothing(false);
+        gc.drawImage(TEXTURE, x - SPRITE_SIZE / 2, y - SPRITE_SIZE / 2, SPRITE_SIZE, SPRITE_SIZE);
     }
 
     @Override
-    public javafx.geometry.Rectangle2D getBoundingBox() {
-        return new javafx.geometry.Rectangle2D(
-                position.getX() - WIDTH / 2, position.getY() - HEIGHT / 2, WIDTH, HEIGHT);
+    public Rectangle2D getBoundingBox() {
+        return new Rectangle2D(position.getX() - 30, position.getY() - 24, 60, 48);
     }
 
     private static Image loadTexture() {
-        var resource = Boss.class.getResource("/touhou/ufo-small.gif");
+        var resource = Boss.class.getResource("boss.png");
         if (resource == null) {
-            throw new IllegalStateException("Missing boss texture: /touhou/ufo-small.gif");
+            throw new IllegalStateException("Missing boss texture: boss.png");
         }
         return new Image(resource.toExternalForm());
     }

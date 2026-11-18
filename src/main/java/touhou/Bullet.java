@@ -2,13 +2,25 @@ package touhou;
 
 import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.image.Image;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.CycleMethod;
+import javafx.scene.paint.RadialGradient;
+import javafx.scene.paint.Stop;
 
 public class Bullet extends WorldEntity {
     protected static final double RADIUS = 10;
-    private static final double DRAW_WIDTH = 18;
-    private static final double DRAW_HEIGHT = 26;
-    private static final Image TEXTURE = loadTexture();
+    private static final double ORB_RADIUS = 8;
+    private static final double GLOW_RADIUS = 16;
+    private static final RadialGradient ORB_GLOW = new RadialGradient(0, 0, 0.5, 0.5, 0.5, true,
+            CycleMethod.NO_CYCLE,
+            new Stop(0.45, Color.web("#aa70ff", 0.56)),
+            new Stop(0.72, Color.web("#9a60f5", 0.20)),
+            new Stop(1, Color.TRANSPARENT));
+    private static final RadialGradient ORB_CORE = new RadialGradient(225, 0.25, 0.5, 0.5, 0.5, true,
+            CycleMethod.NO_CYCLE,
+            new Stop(0.28, Color.WHITE),
+            new Stop(0.65, Color.web("#e9d5ff")),
+            new Stop(1, Color.web("#a96af3")));
 
     protected Point2D velocity;
     private boolean active = true;
@@ -20,8 +32,12 @@ public class Bullet extends WorldEntity {
 
     @Override
     protected void drawInternal(GraphicsContext gc) {
-        gc.drawImage(TEXTURE, position.getX() - DRAW_WIDTH / 2,
-                position.getY() - DRAW_HEIGHT / 2, DRAW_WIDTH, DRAW_HEIGHT);
+        double x = position.getX();
+        double y = position.getY();
+        gc.setFill(ORB_GLOW);
+        gc.fillOval(x - GLOW_RADIUS, y - GLOW_RADIUS, GLOW_RADIUS * 2, GLOW_RADIUS * 2);
+        gc.setFill(ORB_CORE);
+        gc.fillOval(x - ORB_RADIUS, y - ORB_RADIUS, ORB_RADIUS * 2, ORB_RADIUS * 2);
     }
 
     @Override
@@ -53,14 +69,5 @@ public class Bullet extends WorldEntity {
         if (another instanceof Player) {
             deactivate();
         }
-    }
-
-    private static Image loadTexture() {
-        var resource = Bullet.class.getResource("/touhou/fireball-transparent-small.gif");
-        if (resource == null) {
-            throw new IllegalStateException(
-                    "Missing enemy bullet texture: /touhou/fireball-transparent-small.gif");
-        }
-        return new Image(resource.toExternalForm());
     }
 }
