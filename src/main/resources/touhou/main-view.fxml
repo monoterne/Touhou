@@ -12,6 +12,7 @@
     <children>
         <Label styleClass="title-label" text="Touhou" />
         <Button fx:id="startButton" mnemonicParsing="false" prefWidth="220.0" text="Start" />
+        <Button fx:id="loadButton" mnemonicParsing="false" prefWidth="220.0" text="Load game" />
         <Button fx:id="exitButton" mnemonicParsing="false" prefWidth="220.0" text="Exit" />
     </children>
 </VBox>

@@ -3,14 +3,14 @@ package touhou;
 import javafx.geometry.Point2D;
 
 public class BulletAnimated extends Bullet {
+    private static final long serialVersionUID = 1L;
     public BulletAnimated(World world, Point2D position, Point2D velocity) {
         super(world, position, velocity);
     }
 
     public void setVelocity(double velocity, double angle) {
-        this.velocity = new Point2D(
-                Math.cos(Math.toRadians(angle)) * velocity,
-                Math.sin(Math.toRadians(angle)) * velocity);
+        velocityX = Math.cos(Math.toRadians(angle)) * velocity;
+        velocityY = Math.sin(Math.toRadians(angle)) * velocity;
     }
 
     @Override

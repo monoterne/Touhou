@@ -4,13 +4,18 @@ import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.canvas.GraphicsContext;
 
-public abstract class WorldEntity implements DrawableSimulable, Collisonable {
+import java.io.Serializable;
+
+public abstract class WorldEntity implements DrawableSimulable, Collisonable, Serializable {
+    private static final long serialVersionUID = 1L;
     protected final World world;
-    protected Point2D position;
+    protected double x;
+    protected double y;
 
     protected WorldEntity(World world, Point2D position) {
         this.world = world;
-        this.position = position;
+        this.x = position.getX();
+        this.y = position.getY();
     }
 
     public final void draw(GraphicsContext gc) {
@@ -22,16 +27,17 @@ public abstract class WorldEntity implements DrawableSimulable, Collisonable {
     protected abstract void drawInternal(GraphicsContext gc);
 
     public Point2D getPosition() {
-        return position;
+        return new Point2D(x, y);
     }
 
     protected void setPosition(Point2D position) {
-        this.position = position;
+        this.x = position.getX();
+        this.y = position.getY();
     }
 
     @Override
     public Rectangle2D getBoundingBox() {
-        return new Rectangle2D(position.getX(), position.getY(), 0, 0);
+        return new Rectangle2D(x, y, 0, 0);
     }
 
     @Override

@@ -5,6 +5,7 @@
 
 # Local game data
 /touhou.dat
+/touhou.sav
 
 # Compiled class file
 *.class

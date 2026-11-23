@@ -6,14 +6,15 @@ import javafx.geometry.Pos;
 import javafx.scene.Group;
 import javafx.scene.Scene;
 import javafx.scene.canvas.Canvas;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Set;
@@ -22,6 +23,8 @@ public class App extends Application {
     public static void main(String[] args) {
         launch(args);
     }
+    private static final Path SAVED_WORLD = Path.of("touhou.sav");
+
     private DrawingThread timer;
     private Stage primaryStage;
     private final Set<KeyCode> pressedKeys = new HashSet<>();
@@ -36,11 +39,10 @@ public class App extends Application {
             gameData = gameDataStore.load(Path.of(System.getProperty("user.dir")));
             FXMLLoader loader = new FXMLLoader(getClass().getResource("main-view.fxml"));
             Scene menuScene = new Scene(loader.load(), 1024, 768);
-            loader.<MainController>getController().setApp(this);
+            loader.<MainController>getController().setApp(this, Files.isRegularFile(SAVED_WORLD));
             primaryStage.setScene(menuScene);
             primaryStage.resizableProperty().set(false);
             primaryStage.setTitle("Touhou");
-            primaryStage.setOnCloseRequest(this::exitProgram);
             primaryStage.focusedProperty().addListener((observable, wasFocused, focused) -> {
                 if (!focused && timer != null) {
                     pressedKeys.clear();
@@ -54,6 +56,36 @@ public class App extends Application {
     }
 
     public void startGame() {
+        startGame(new World(1024, 768));
+    }
+
+    void loadGame() {
+        try {
+            startGame(World.load(SAVED_WORLD));
+        } catch (IOException | ClassNotFoundException e) {
+            showFileError("Could not load the game", e);
+        }
+    }
+
+    void saveAndExit() {
+        try {
+            timer.getWorld().save(SAVED_WORLD);
+        } catch (IOException e) {
+            showFileError("Could not save the game", e);
+            return;
+        }
+        exitGame();
+    }
+
+    private void showFileError(String message, Exception error) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
+        alert.initOwner(primaryStage);
+        alert.setHeaderText(message);
+        alert.setContentText(error.toString());
+        alert.showAndWait();
+    }
+
+    private void startGame(World world) {
         if (timer != null) {
             timer.stop();
         }
@@ -64,7 +96,7 @@ public class App extends Application {
         root.getChildren().add(canvas);
         Scene scene = new Scene(root, 1024, 768);
         scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
-        timer = new DrawingThread(canvas, () -> finishRound("Game over!"), () -> finishRound("Victory!"));
+        timer = new DrawingThread(canvas, world, () -> finishRound("Game over!"), () -> finishRound("Victory!"));
         addHud(root, canvas);
         scene.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.ESCAPE) {
@@ -83,9 +115,9 @@ public class App extends Application {
     }
 
     private void addHud(Group root, Canvas canvas) {
-        Label livesLabel = new Label("Lives: " + timer.getPlayerLives());
+        Label livesLabel = new Label();
         livesLabel.getStyleClass().add("lives-label");
-        timer.setLivesLabel(livesLabel);
+        livesLabel.textProperty().bind(timer.playerLivesProperty().asString("Lives: %d"));
         ProgressBar livesBar = new ProgressBar();
         livesBar.setAccessibleText("Player lives");
         livesBar.getStyleClass().addAll("health-bar", "player-health-bar");
@@ -108,7 +140,7 @@ public class App extends Application {
         bossHud.layoutXProperty().bind(canvas.widthProperty().subtract(bossHud.widthProperty()).divide(2));
         bossHud.setLayoutY(10);
 
-        Label controlsLabel = new Label("E to shoot");
+        Label controlsLabel = new Label("E to shoot   Esc to pause");
         controlsLabel.getStyleClass().add("lives-label");
         controlsLabel.layoutXProperty().bind(canvas.widthProperty().subtract(controlsLabel.widthProperty()).subtract(12));
         controlsLabel.setLayoutY(12);
@@ -134,7 +166,7 @@ public class App extends Application {
     private void finishRound(String title) {
         timer = null;
         pressedKeys.clear();
-        showRoundMenu(title, "Restart", this::continueGame);
+        showRoundMenu(title, "Restart", this::startGame);
     }
 
     private void showRoundMenu(String title, String actionText, Runnable action) {
@@ -143,37 +175,22 @@ public class App extends Application {
             Scene menuScene = new Scene(loader.load(), 1024, 768);
             GameOverController controller = loader.getController();
             controller.setApp(this);
-            controller.configure(title, actionText, action);
+            controller.configure(title, actionText, action, timer != null);
             primaryStage.setScene(menuScene);
         } catch (IOException e) {
             throw new IllegalStateException("Unable to load the round menu", e);
         }
     }
 
-    public void continueGame() {
-        startGame();
-    }
-
     public void exitGame() {
-        saveGameData();
         primaryStage.close();
     }
 
     @Override
-    public void stop() throws Exception {
+    public void stop() {
         if (timer != null) {
             timer.stop();
         }
-        saveGameData();
-        super.stop();
-    }
-
-    private void exitProgram(WindowEvent evt) {
-        saveGameData();
-        System.exit(0);
-    }
-
-    private void saveGameData() {
         if (gameData != null) {
             gameDataStore.save(gameData);
         }

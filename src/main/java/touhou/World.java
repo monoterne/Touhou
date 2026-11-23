@@ -3,6 +3,13 @@ package touhou;
 import javafx.geometry.Point2D;
 import javafx.geometry.Rectangle2D;
 import javafx.scene.canvas.GraphicsContext;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,7 +17,8 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
-public class World {
+public class World implements Serializable {
+    private static final long serialVersionUID = 1L;
     private static final int OBJECT_COUNT = 40;
     private static final int ENEMY_BULLET_COUNT = 36;
     private static final double SHOOTER_X = 0.5;
@@ -27,7 +35,7 @@ public class World {
     private final Boss boss;
     private double patternTime;
     private double shotAngle;
-    private boolean firing;
+    private transient boolean firing;
     private double shotCooldown;
 
     public World(double width, double height) {
@@ -38,6 +46,27 @@ public class World {
         objects.set(0, player);
         objects.set(1, boss);
         initializeEnemyBullets();
+    }
+
+    void save(Path file) throws IOException {
+        Path temporary = Files.createTempFile(file.toAbsolutePath().getParent(), "touhou-", ".tmp");
+        try {
+            try (ObjectOutputStream output = new ObjectOutputStream(Files.newOutputStream(temporary))) {
+                output.writeObject(this);
+            }
+            Files.move(temporary, file, StandardCopyOption.REPLACE_EXISTING);
+        } finally {
+            Files.deleteIfExists(temporary);
+        }
+    }
+
+    static World load(Path file) throws IOException, ClassNotFoundException {
+        try (ObjectInputStream input = new ObjectInputStream(Files.newInputStream(file))) {
+            if (input.readObject() instanceof World world) {
+                return world;
+            }
+            throw new IOException("The file does not contain a saved game.");
+        }
     }
 
     public void draw(GraphicsContext gc) {
@@ -194,7 +223,7 @@ public class World {
 
     private void addObject(WorldEntity object) {
         for (int i = 2; i < objects.size(); i++) {
-            if (objects.get(i) == null || !isActive(objects.get(i))) {
+            if (!isActive(objects.get(i))) {
                 objects.set(i, object);
                 return;
             }

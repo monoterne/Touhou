@@ -12,6 +12,7 @@
     <children>
         <Label fx:id="titleLabel" styleClass="title-label" text="Game over!" />
         <Button fx:id="continueButton" mnemonicParsing="false" prefWidth="220.0" text="Restart" />
+        <Button fx:id="saveButton" mnemonicParsing="false" prefWidth="220.0" text="Save and exit" />
         <Button fx:id="exitButton" mnemonicParsing="false" prefWidth="220.0" text="Exit" />
     </children>
 </VBox>

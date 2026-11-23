@@ -10,15 +10,20 @@ public class MainController {
     private Button startButton;
 
     @FXML
+    private Button loadButton;
+
+    @FXML
     private Button exitButton;
 
     @FXML
     private void initialize() {
         startButton.setOnAction(event -> app.startGame());
+        loadButton.setOnAction(event -> app.loadGame());
         exitButton.setOnAction(event -> app.exitGame());
     }
 
-    public void setApp(App app) {
+    public void setApp(App app, boolean hasSavedGame) {
         this.app = app;
+        loadButton.setDisable(!hasSavedGame);
     }
 }

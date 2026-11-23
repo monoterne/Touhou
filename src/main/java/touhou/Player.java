@@ -5,23 +5,30 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 
 public class Player extends WorldEntity {
+    private static final long serialVersionUID = 1L;
     static final int STARTING_LIVES = 3;
     private static final double SIZE = 44;
     private static final double SPEED = 260;
     private static final double FRAME_DURATION = 0.12;
     private static final double SPRITE_DRAW_SIZE = 60;
     private static final int FRAME_COUNT = 2;
-    private static final Image DOWN_SPRITE = loadSprite("character-down.png");
-    private static final Image LEFT_SPRITE = loadSprite("character-left.png");
-    private static final Image RIGHT_SPRITE = loadSprite("character-right.png");
-    private static final Image UP_SPRITE = loadSprite("character-up.png");
+    private enum Direction {
+        DOWN("character-down.png"), LEFT("character-left.png"),
+        RIGHT("character-right.png"), UP("character-up.png");
+
+        private final Image sprite;
+
+        Direction(String fileName) {
+            sprite = loadSprite(fileName);
+        }
+    }
 
     private final double worldWidth;
     private final double worldHeight;
-    private double inputX;
-    private double inputY;
+    private transient double inputX;
+    private transient double inputY;
     private double animationTime;
-    private Image directionSprite = DOWN_SPRITE;
+    private Direction facing = Direction.DOWN;
     private int animationFrame;
     private int lives = STARTING_LIVES;
 
@@ -37,10 +44,10 @@ public class Player extends WorldEntity {
     }
 
     protected void drawInternal(GraphicsContext gc) {
-        double drawX = position.getX() - SPRITE_DRAW_SIZE / 2;
-        double drawY = position.getY() - SPRITE_DRAW_SIZE / 2 - animationFrame;
+        double drawX = x - SPRITE_DRAW_SIZE / 2;
+        double drawY = y - SPRITE_DRAW_SIZE / 2 - animationFrame;
         gc.setImageSmoothing(false);
-        gc.drawImage(directionSprite, drawX, drawY, SPRITE_DRAW_SIZE, SPRITE_DRAW_SIZE);
+        gc.drawImage(facing.sprite, drawX, drawY, SPRITE_DRAW_SIZE, SPRITE_DRAW_SIZE);
     }
 
     public void simulate(double deltaTime) {
@@ -51,12 +58,8 @@ public class Player extends WorldEntity {
         updateAnimation(direction, deltaTime);
         Point2D position = getPosition().add(direction.multiply(SPEED * deltaTime));
         setPosition(new Point2D(
-                clamp(position.getX(), SIZE / 2, worldWidth - SIZE / 2),
-                clamp(position.getY(), SIZE / 2, worldHeight - SIZE / 2)));
-    }
-
-    public Point2D getPosition() {
-        return position;
+                Math.clamp(position.getX(), SIZE / 2, worldWidth - SIZE / 2),
+                Math.clamp(position.getY(), SIZE / 2, worldHeight - SIZE / 2)));
     }
 
     public int getLives() {
@@ -66,7 +69,7 @@ public class Player extends WorldEntity {
     @Override
     public javafx.geometry.Rectangle2D getBoundingBox() {
         return new javafx.geometry.Rectangle2D(
-                position.getX() - SIZE / 2, position.getY() - SIZE / 2, SIZE, SIZE);
+                x - SIZE / 2, y - SIZE / 2, SIZE, SIZE);
     }
 
     @Override
@@ -77,10 +80,6 @@ public class Player extends WorldEntity {
         }
     }
 
-    private static double clamp(double value, double minimum, double maximum) {
-        return Math.clamp(value, minimum, maximum);
-    }
-
     private void updateAnimation(Point2D direction, double deltaTime) {
         if (direction.magnitude() == 0) {
             animationFrame = 0;
@@ -89,9 +88,9 @@ public class Player extends WorldEntity {
         }
 
         if (Math.abs(direction.getX()) > Math.abs(direction.getY())) {
-            directionSprite = direction.getX() < 0 ? LEFT_SPRITE : RIGHT_SPRITE;
+            facing = direction.getX() < 0 ? Direction.LEFT : Direction.RIGHT;
         } else {
-            directionSprite = direction.getY() < 0 ? UP_SPRITE : DOWN_SPRITE;
+            facing = direction.getY() < 0 ? Direction.UP : Direction.DOWN;
         }
 
         animationTime += deltaTime;

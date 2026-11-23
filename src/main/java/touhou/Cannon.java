@@ -4,6 +4,7 @@ import javafx.geometry.Point2D;
 import javafx.scene.canvas.GraphicsContext;
 
 public class Cannon extends WorldEntity {
+    private static final long serialVersionUID = 1L;
     private double angle;
 
     public Cannon(World world, Point2D position) {

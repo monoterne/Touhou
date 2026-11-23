@@ -10,6 +10,7 @@ import javafx.scene.paint.RadialGradient;
 import javafx.scene.paint.Stop;
 
 public class Boss extends Cannon {
+    private static final long serialVersionUID = 1L;
     static final int MAX_HEALTH = 1_000;
 
     private static final double SPRITE_SIZE = 112;
@@ -24,7 +25,8 @@ public class Boss extends Cannon {
             new Stop(1, Color.TRANSPARENT));
     private static final Color HALO_RING = Color.web("#b986ff", 0.40);
 
-    private final Point2D center;
+    private final double centerX;
+    private final double centerY;
     private final double sweepDistance;
     private int health = MAX_HEALTH;
     private double elapsed;
@@ -35,7 +37,8 @@ public class Boss extends Cannon {
 
     Boss(World world, Point2D position, double sweepDistance) {
         super(world, position);
-        this.center = position;
+        this.centerX = position.getX();
+        this.centerY = position.getY();
         this.sweepDistance = sweepDistance;
     }
 
@@ -50,15 +53,13 @@ public class Boss extends Cannon {
     @Override
     public void simulate(double deltaTime) {
         elapsed += deltaTime;
-        setPosition(center.add(
-                Math.sin(2 * Math.PI * elapsed / SWEEP_PERIOD_SECONDS) * sweepDistance,
-                Math.sin(2 * Math.PI * elapsed / BOB_PERIOD_SECONDS) * BOB_HEIGHT));
+        setPosition(new Point2D(
+                centerX + Math.sin(2 * Math.PI * elapsed / SWEEP_PERIOD_SECONDS) * sweepDistance,
+                centerY + Math.sin(2 * Math.PI * elapsed / BOB_PERIOD_SECONDS) * BOB_HEIGHT));
     }
 
     @Override
     protected void drawInternal(GraphicsContext gc) {
-        double x = position.getX();
-        double y = position.getY();
         double pulse = 0.86 + 0.14 * Math.cos(2 * Math.PI * elapsed / BOB_PERIOD_SECONDS);
         gc.setGlobalAlpha(pulse);
         gc.setFill(HALO);
@@ -74,7 +75,7 @@ public class Boss extends Cannon {
 
     @Override
     public Rectangle2D getBoundingBox() {
-        return new Rectangle2D(position.getX() - 30, position.getY() - 24, 60, 48);
+        return new Rectangle2D(x - 30, y - 24, 60, 48);
     }
 
     private static Image loadTexture() {

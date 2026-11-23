@@ -26,17 +26,21 @@ public class DrawingThread extends AnimationTimer {
 
 
     public DrawingThread(Canvas canvas) {
-        this(canvas, () -> {}, () -> {});
+        this(canvas, new World(canvas.getWidth(), canvas.getHeight()), () -> {}, () -> {});
     }
 
-    DrawingThread(Canvas canvas, Runnable onGameOver, Runnable onVictory) {
+    DrawingThread(Canvas canvas, World world, Runnable onGameOver, Runnable onVictory) {
         this.canvas = canvas;
         this.gc = canvas.getGraphicsContext2D();
         this.onGameOver = onGameOver;
         this.onVictory = onVictory;
-        this.world = new World(canvas.getWidth(), canvas.getHeight());
+        this.world = world;
         this.playerLives = new ReadOnlyIntegerWrapper(world.getPlayerLives());
         this.bossHealth = new ReadOnlyIntegerWrapper(world.getBossHealth());
+    }
+
+    World getWorld() {
+        return world;
     }
 
     public void setInput(double x, double y) {

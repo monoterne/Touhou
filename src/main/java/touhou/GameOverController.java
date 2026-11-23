@@ -11,6 +11,9 @@ public class GameOverController {
     private Label titleLabel;
 
     @FXML
+    private Button saveButton;
+
+    @FXML
     private Button exitButton;
 
     @FXML
@@ -18,15 +21,17 @@ public class GameOverController {
 
     @FXML
     private void initialize() {
+        saveButton.setOnAction(event -> app.saveAndExit());
         exitButton.setOnAction(event -> app.exitGame());
-        continueButton.setOnAction(event -> app.continueGame());
     }
 
     public void setApp(App app) {
         this.app = app;
     }
 
-    void configure(String title, String actionText, Runnable action) {
+    void configure(String title, String actionText, Runnable action, boolean canSave) {
+        saveButton.setVisible(canSave);
+        saveButton.setManaged(canSave);
         titleLabel.setText(title);
         continueButton.setText(actionText);
         continueButton.setOnAction(event -> action.run());

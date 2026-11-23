@@ -8,6 +8,7 @@ import javafx.scene.paint.RadialGradient;
 import javafx.scene.paint.Stop;
 
 public class Bullet extends WorldEntity {
+    private static final long serialVersionUID = 1L;
     protected static final double RADIUS = 10;
     private static final double ORB_RADIUS = 8;
     private static final double GLOW_RADIUS = 16;
@@ -22,18 +23,18 @@ public class Bullet extends WorldEntity {
             new Stop(0.65, Color.web("#e9d5ff")),
             new Stop(1, Color.web("#a96af3")));
 
-    protected Point2D velocity;
+    protected double velocityX;
+    protected double velocityY;
     private boolean active = true;
 
     public Bullet(World world, Point2D position, Point2D velocity) {
         super(world, position);
-        this.velocity = velocity;
+        this.velocityX = velocity.getX();
+        this.velocityY = velocity.getY();
     }
 
     @Override
     protected void drawInternal(GraphicsContext gc) {
-        double x = position.getX();
-        double y = position.getY();
         gc.setFill(ORB_GLOW);
         gc.fillOval(x - GLOW_RADIUS, y - GLOW_RADIUS, GLOW_RADIUS * 2, GLOW_RADIUS * 2);
         gc.setFill(ORB_CORE);
@@ -42,18 +43,19 @@ public class Bullet extends WorldEntity {
 
     @Override
     public void simulate(double deltaTime) {
-        setPosition(position.add(velocity.multiply(deltaTime)));
+        x += velocityX * deltaTime;
+        y += velocityY * deltaTime;
     }
 
     @Override
     public javafx.geometry.Rectangle2D getBoundingBox() {
         return new javafx.geometry.Rectangle2D(
-                position.getX() - RADIUS, position.getY() - RADIUS, RADIUS * 2, RADIUS * 2);
+                x - RADIUS, y - RADIUS, RADIUS * 2, RADIUS * 2);
     }
 
     public boolean isOutside(double width, double height) {
-        return position.getX() < -RADIUS || position.getX() > width + RADIUS
-                || position.getY() < -RADIUS || position.getY() > height + RADIUS;
+        return x < -RADIUS || x > width + RADIUS
+                || y < -RADIUS || y > height + RADIUS;
     }
 
     public boolean isActive() {
